@@ -44,6 +44,11 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         getHolder().unlockCanvasAndPost(canvas);
     }
 
+    public void clearAll(){
+        path.reset();
+        draw();
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         draw();
