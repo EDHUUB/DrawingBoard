@@ -13,10 +13,25 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DrawView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
 
+    //画笔集
+    private List<Paint> paintList = new ArrayList<>();
+    //路径集
+    private List<Path> pathList = new ArrayList<>();
+    //画笔颜色
+    private int choseColor = Color.WHITE;
+    //画笔尺寸
+    private int choseSize = 5;
+    //画笔类型
+
+
+
     //画笔
-    private Paint paint = new Paint();
+    private Paint paint = new Paint() ;
 
     //路径
     private Path path = new Path();
@@ -26,9 +41,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     public DrawView(Context context, AttributeSet attrs) {
         super(context,attrs);
         getHolder().addCallback(this);
-        paint.setColor(Color.WHITE);
-        paint.setTextSize(10);
-        paint.setStyle(Paint.Style.STROKE);
         //初始化onTouchListener
         setOnTouchListener(this);
     }
@@ -39,13 +51,23 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         Canvas canvas = getHolder().lockCanvas();
 
         canvas.drawColor(Color.GRAY);
-        canvas.drawPath(path,paint);
-
+//        canvas.drawPath(path,paint);
+        if(paintList!=null&&paintList.size()>0){
+            for(int i=0;i<paintList.size();i++){
+                canvas.drawPath(pathList.get(i), paintList.get(i));//设置画笔，路径
+            }
+        }
         getHolder().unlockCanvasAndPost(canvas);
     }
 
+    public void changeToYellow(){
+        choseColor = Color.YELLOW;
+    }
+
     public void clearAll(){
-        path.reset();
+        pathList.clear();
+        paintList.clear();
+        choseColor = Color.WHITE;
         draw();
     }
 
@@ -68,15 +90,25 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     //todo：监听器原理与使用
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        paint = new Paint();
+        path = new Path();
+        paint.setColor(choseColor);
+        paint.setStrokeWidth(choseSize);
+        paint.setStyle(Paint.Style.STROKE);
 
         switch ( event.getAction()){
             case MotionEvent.ACTION_DOWN:
-                path.moveTo(event.getX(),event.getY());
+                path.setLastPoint(event.getX(),event.getY());
+                pathList.add(path);
+                paintList.add(paint);
                 draw();
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                path.lineTo(event.getX(),event.getY());
+                path.setLastPoint(event.getX(),event.getY());
+                pathList.get(pathList.size()-1).lineTo(event.getX(),event.getY());
+                pathList.add(path);
+                paintList.add(paint);
                 draw();
                 break;
 

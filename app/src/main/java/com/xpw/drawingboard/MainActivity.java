@@ -9,6 +9,7 @@ import android.widget.Button;
 public class MainActivity extends AppCompatActivity {
 
     private Button cleanButton;
+    private Button changeToYellow;
     private DrawView drawView;
 
     @Override
@@ -17,10 +18,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         cleanButton = findViewById(R.id.clean_btn);
         drawView = findViewById(R.id.draw);
+        changeToYellow = findViewById(R.id.yellow_btn);
         cleanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawView.clearAll();
+            }
+        });
+
+        changeToYellow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawView.changeToYellow();
             }
         });
 
