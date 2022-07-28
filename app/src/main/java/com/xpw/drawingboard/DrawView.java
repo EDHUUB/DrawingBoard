@@ -25,8 +25,9 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     //画笔颜色
     private int choseColor = Color.WHITE;
     //画笔尺寸
-    private int choseSize = 5;
+    private int choseStrokeWidth = 5;
     //画笔类型
+    private Paint.Style choseStyle = Paint.Style.STROKE;
 
 
 
@@ -60,10 +61,22 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         getHolder().unlockCanvasAndPost(canvas);
     }
 
+    //改变笔触颜色为黄色
     public void changeToYellow(){
         choseColor = Color.YELLOW;
     }
 
+    //改变笔触宽度为10
+    public void setStrokeWidthTo10(){
+        choseStrokeWidth = 10;
+    }
+
+    //改变笔触样式
+    public void setPaintStyle(){
+        choseStyle = Paint.Style.FILL_AND_STROKE;
+    }
+
+    //清屏
     public void clearAll(){
         pathList.clear();
         paintList.clear();
@@ -93,8 +106,8 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         paint = new Paint();
         path = new Path();
         paint.setColor(choseColor);
-        paint.setStrokeWidth(choseSize);
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(choseStrokeWidth);
+        paint.setStyle(choseStyle);
 
         switch ( event.getAction()){
             case MotionEvent.ACTION_DOWN:

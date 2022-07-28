@@ -35,6 +35,15 @@
             android:text="strokeWidth1"
             />
 
+        <Button
+            android:id="@+id/style_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:text="paintStyle"
+            />
+
 
         <Button
             android:id="@+id/clean_btn"
