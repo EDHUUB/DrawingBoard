@@ -44,6 +44,25 @@
             android:text="paintStyle"
             />
 
+        <Button
+            android:id="@+id/revoke_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:text="revoke"
+            />
+
+        <Button
+            android:id="@+id/forward_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:text="forward"
+            />
+
+
 
         <Button
             android:id="@+id/clean_btn"

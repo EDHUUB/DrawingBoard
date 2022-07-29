@@ -12,6 +12,8 @@ public class MainActivity extends AppCompatActivity {
     private Button changeToYellow;
     private Button setStrokeWidthTo10;
     private Button setPaintStyle;
+    private Button revokeButton;
+    private Button forwardButton;
     private DrawView drawView;
 
     @Override
@@ -25,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
         changeToYellow = findViewById(R.id.yellow_btn);
         setStrokeWidthTo10 = findViewById(R.id.stroke_width_btn);
         setPaintStyle = findViewById(R.id.style_btn);
+        revokeButton = findViewById(R.id.revoke_btn);
+        forwardButton = findViewById(R.id.forward_btn);
 
 
         cleanButton.setOnClickListener(new View.OnClickListener() {
@@ -52,6 +56,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawView.setPaintStyle();
+            }
+        });
+
+        revokeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawView.revoke();
+            }
+        });
+
+        forwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawView.forward();
             }
         });
 

@@ -29,6 +29,11 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     //画笔类型
     private Paint.Style choseStyle = Paint.Style.STROKE;
 
+    //画笔撤销集
+    private List<Paint> revokePaintList = new ArrayList<>();
+    //路径撤销集
+    private List<Path> revokePathList = new ArrayList<>();
+
 
 
     //画笔
@@ -82,6 +87,28 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         paintList.clear();
         choseColor = Color.WHITE;
         draw();
+    }
+
+    //撤销画笔动作
+    public void revoke(){
+        if (paintList.size()>0&&pathList.size()>0){
+            revokePaintList.add(paintList.get(pathList.size()-1));
+            revokePathList.add(pathList.get(pathList.size()-1));
+            paintList.remove(paintList.size()-1);
+            pathList.remove(pathList.size()-1);
+            draw();}
+    }
+
+    //前进画笔动作
+    public void forward(){
+        if (revokePathList.size()>0&&revokePaintList.size()>0){
+            paintList.add(revokePaintList.get(revokePaintList.size()-1));
+            pathList.add(revokePathList.get(revokePathList.size()-1));
+            revokePaintList.remove(revokePaintList.get(revokePaintList.size()-1));
+            revokePathList.remove(revokePathList.get(revokePathList.size()-1));
+            draw();
+
+    }
     }
 
     @Override
