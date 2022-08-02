@@ -127,7 +127,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     }
 
 
-    //todo：监听器原理与使用
+    //todo：监听器原理与使用,嵌套
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         paint = new Paint();
@@ -147,8 +147,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
             case MotionEvent.ACTION_MOVE:
                 path.setLastPoint(event.getX(),event.getY());
                 pathList.get(pathList.size()-1).lineTo(event.getX(),event.getY());
-                pathList.add(path);
-                paintList.add(paint);
                 draw();
                 break;
 
