@@ -81,6 +81,12 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         choseStyle = Paint.Style.FILL_AND_STROKE;
     }
 
+    //点状橡皮擦
+    public void eraser(){
+        choseColor = Color.GRAY;
+        choseStrokeWidth = 40;
+    }
+
     //清屏
     public void clearAll(){
         pathList.clear();

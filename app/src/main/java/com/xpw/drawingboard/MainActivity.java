@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private Button setPaintStyle;
     private Button revokeButton;
     private Button forwardButton;
+    private Button eraserButton;
     private DrawView drawView;
 
     @Override
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         changeToYellow = findViewById(R.id.yellow_btn);
         setStrokeWidthTo10 = findViewById(R.id.stroke_width_btn);
         setPaintStyle = findViewById(R.id.style_btn);
+        eraserButton = findViewById(R.id.point_eraser_btn);
         revokeButton = findViewById(R.id.revoke_btn);
         forwardButton = findViewById(R.id.forward_btn);
 
@@ -56,6 +58,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawView.setPaintStyle();
+            }
+        });
+
+        eraserButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawView.eraser();
             }
         });
 
