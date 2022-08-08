@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -18,6 +19,7 @@ import java.util.List;
 
 public class DrawView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
 
+    private static final String TAG = "测试";
     //画笔集
     private List<Paint> paintList = new ArrayList<>();
     //路径集
@@ -28,16 +30,28 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     private int choseStrokeWidth = 5;
     //画笔类型
     private Paint.Style choseStyle = Paint.Style.STROKE;
+    //当前触点x坐标
+    private float x;
+    //当前触点x坐标
+    private float y;
+    //画笔类型
+    private String paintType;
 
     //画笔撤销集
     private List<Paint> revokePaintList = new ArrayList<>();
     //路径撤销集
     private List<Path> revokePathList = new ArrayList<>();
 
+    //画布
+    private Canvas canvas;
+
+    //橡皮擦画笔
+    private Paint eraserPaint = new Paint();
+    //上一个触碰点位置
 
 
     //画笔
-    private Paint paint = new Paint() ;
+    private Paint paint = new Paint();
 
     //路径
     private Path path = new Path();
@@ -45,50 +59,65 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
 
     //初始化
     public DrawView(Context context, AttributeSet attrs) {
-        super(context,attrs);
+        super(context, attrs);
         getHolder().addCallback(this);
         //初始化onTouchListener
         setOnTouchListener(this);
     }
 
-    //绘制动作
+    //画笔绘制动作
     //todo:原理，逻辑
-    public void draw(){
-        Canvas canvas = getHolder().lockCanvas();
+    public void draw() {
+        canvas = getHolder().lockCanvas();
 
         canvas.drawColor(Color.GRAY);
-//        canvas.drawPath(path,paint);
-        if(paintList!=null&&paintList.size()>0){
-            for(int i=0;i<paintList.size();i++){
+        if (paintList != null && paintList.size() > 0) {
+            for (int i = 0; i < paintList.size(); i++) {
                 canvas.drawPath(pathList.get(i), paintList.get(i));//设置画笔，路径
             }
         }
+
         getHolder().unlockCanvasAndPost(canvas);
     }
 
     //改变笔触颜色为黄色
-    public void changeToYellow(){
+    public void changeToYellow() {
+        paintType = "paint";
         choseColor = Color.YELLOW;
     }
 
     //改变笔触宽度为10
-    public void setStrokeWidthTo10(){
+    public void setStrokeWidthTo10() {
+        paintType = "paint";
         choseStrokeWidth = 10;
     }
 
     //改变笔触样式
-    public void setPaintStyle(){
-        choseStyle = Paint.Style.FILL_AND_STROKE;
+    public void setPaintStyle() {
+        paintType = "paint";
     }
 
     //点状橡皮擦
-    public void eraser(){
+    public void eraser() {
         choseColor = Color.GRAY;
-        choseStrokeWidth = 40;
+        paintType = "eraser";
+    }
+
+    //跟随圆点
+    public void followPoint() {
+        canvas = getHolder().lockCanvas();
+        eraserPaint.setColor(Color.WHITE);
+        eraserPaint.setAlpha(50);
+        //todo 橡皮擦属性的设置抽取
+        eraserPaint.setStrokeWidth(40);
+        canvas.drawCircle(x,y,choseStrokeWidth,eraserPaint);
+        getHolder().unlockCanvasAndPost(canvas);
+
+
     }
 
     //清屏
-    public void clearAll(){
+    public void clearAll() {
         pathList.clear();
         paintList.clear();
         choseColor = Color.WHITE;
@@ -96,25 +125,26 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     }
 
     //撤销画笔动作
-    public void revoke(){
-        if (paintList.size()>0&&pathList.size()>0){
-            revokePaintList.add(paintList.get(pathList.size()-1));
-            revokePathList.add(pathList.get(pathList.size()-1));
-            paintList.remove(paintList.size()-1);
-            pathList.remove(pathList.size()-1);
-            draw();}
+    public void revoke() {
+        if (paintList.size() > 0 && pathList.size() > 0) {
+            revokePaintList.add(paintList.get(pathList.size() - 1));
+            revokePathList.add(pathList.get(pathList.size() - 1));
+            paintList.remove(paintList.size() - 1);
+            pathList.remove(pathList.size() - 1);
+            draw();
+        }
     }
 
     //前进画笔动作
-    public void forward(){
-        if (revokePathList.size()>0&&revokePaintList.size()>0){
-            paintList.add(revokePaintList.get(revokePaintList.size()-1));
-            pathList.add(revokePathList.get(revokePathList.size()-1));
-            revokePaintList.remove(revokePaintList.get(revokePaintList.size()-1));
-            revokePathList.remove(revokePathList.get(revokePathList.size()-1));
+    public void forward() {
+        if (revokePathList.size() > 0 && revokePaintList.size() > 0) {
+            paintList.add(revokePaintList.get(revokePaintList.size() - 1));
+            pathList.add(revokePathList.get(revokePathList.size() - 1));
+            revokePaintList.remove(revokePaintList.get(revokePaintList.size() - 1));
+            revokePathList.remove(revokePathList.get(revokePathList.size() - 1));
             draw();
 
-    }
+        }
     }
 
     @Override
@@ -142,17 +172,31 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         paint.setStrokeWidth(choseStrokeWidth);
         paint.setStyle(choseStyle);
 
-        switch ( event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                path.setLastPoint(event.getX(),event.getY());
+                path.setLastPoint(event.getX(), event.getY());
+                x = event.getX();
+                y = event.getY();
                 pathList.add(path);
                 paintList.add(paint);
+                if (paintType == "eraser"){
+                    followPoint();
+                }
                 draw();
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                path.setLastPoint(event.getX(),event.getY());
-                pathList.get(pathList.size()-1).lineTo(event.getX(),event.getY());
+                x = event.getX();
+                y = event.getY();
+                path.setLastPoint(event.getX(), event.getY());
+                pathList.get(pathList.size() - 1).lineTo(event.getX(), event.getY());
+                // todo 可以抽取一个方法
+                if (paintType == "eraser"){
+                    followPoint();
+                }
+                draw();
+                break;
+            case MotionEvent.ACTION_UP:
                 draw();
                 break;
 
@@ -162,3 +206,4 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         return true;
     }
 }
+
