@@ -15,7 +15,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DrawView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
 
@@ -47,11 +49,14 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
 
     //橡皮擦画笔
     private Paint eraserPaint = new Paint();
-    //上一个触碰点位置
-
 
     //画笔
     private Paint paint = new Paint();
+    /**
+     * 多指绘图数据集合
+     * Integer负责存储pointerId，Path负责存储对应pointer的path
+     */
+    private Map<Integer, Path> pointMap = new HashMap<>();
 
     //路径
     private Path path = new Path();
@@ -190,6 +195,10 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 draw();
                 break;
 
+            case MotionEvent.ACTION_POINTER_DOWN:
+
+                break;
+
             case MotionEvent.ACTION_MOVE:
                 x = event.getX();
                 y = event.getY();
@@ -198,6 +207,12 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 isEraser();
                 draw();
                 break;
+
+            case MotionEvent.ACTION_POINTER_UP:
+                Log.d(TAG, "onTouch: ");
+                break;
+
+
             case MotionEvent.ACTION_UP:
                 draw();
                 break;
