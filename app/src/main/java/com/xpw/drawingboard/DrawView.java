@@ -110,7 +110,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         eraserPaint.setAlpha(50);
         //todo 橡皮擦属性的设置抽取
         eraserPaint.setStrokeWidth(40);
-        canvas.drawCircle(x,y,choseStrokeWidth,eraserPaint);
+        canvas.drawCircle(x, y, 40, eraserPaint);
         getHolder().unlockCanvasAndPost(canvas);
 
 
@@ -147,6 +147,13 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         }
     }
 
+    //判断是否是橡皮擦
+    public void isEraser() {
+        if (paintType == "eraser") {
+            followPoint();
+        }
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         draw();
@@ -172,16 +179,14 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         paint.setStrokeWidth(choseStrokeWidth);
         paint.setStyle(choseStyle);
 
-        switch (event.getAction()) {
+        switch (event.getAction() & event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 path.setLastPoint(event.getX(), event.getY());
                 x = event.getX();
                 y = event.getY();
                 pathList.add(path);
                 paintList.add(paint);
-                if (paintType == "eraser"){
-                    followPoint();
-                }
+                isEraser();
                 draw();
                 break;
 
@@ -190,10 +195,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 y = event.getY();
                 path.setLastPoint(event.getX(), event.getY());
                 pathList.get(pathList.size() - 1).lineTo(event.getX(), event.getY());
-                // todo 可以抽取一个方法
-                if (paintType == "eraser"){
-                    followPoint();
-                }
+                isEraser();
                 draw();
                 break;
             case MotionEvent.ACTION_UP:
