@@ -43,6 +43,8 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     private List<Paint> revokePaintList = new ArrayList<>();
     //路径撤销集
     private List<Path> revokePathList = new ArrayList<>();
+    //笔触数量
+    private int pointerNum;
 
     //画布
     private Canvas canvas;
@@ -56,7 +58,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
      * 多指绘图数据集合
      * Integer负责存储pointerId，Path负责存储对应pointer的path
      */
-    private Map<Integer, Path> pointMap = new HashMap<>();
+    private Map<Integer, Path> pointerMap = new HashMap<>();
 
     //路径
     private Path path = new Path();
@@ -186,30 +188,83 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
 
         switch (event.getAction() & event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                path.setLastPoint(event.getX(), event.getY());
+                /**
+                 * 功能描述：单笔触绘图-down
+                 * 逻辑流程：
+                 * 0、初始化pointerMap
+                 * 1、获取pointerId
+                 * 2、创建并初始化Path
+                 * 3、将pointerId与Path封装至pointerMap
+                 * 5、将pointerMap数据中的path浅拷贝至pathList
+                 * 6、将当前paintList添加至paintList
+                 * 7、判断当前笔触是否是橡皮擦
+                 * 8、draw（）
+                 */
+                pointerMap = new HashMap<>();
+                path = new Path();
+                path.moveTo(event.getX(), event.getY());
+                pointerMap.put(event.getPointerId(0), path);
+                pathList.add(pointerMap.get(0));
+                paintList.add(paint);
                 x = event.getX();
                 y = event.getY();
-                pathList.add(path);
-                paintList.add(paint);
                 isEraser();
                 draw();
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
 
+                /**
+                 * 功能描述：多笔触绘图-down
+                 * 逻辑流程：
+                 * 1、获取落笔pointerId
+                 * 2若pointerMap中无该key，创建并初始化对应的path
+                 * 3、将pointerId与path封装至painterMap
+                 * 4、将新path浅拷贝至pathList，将当前paint浅拷贝至paintList
+                 * 5、draw()
+                 */
+                pointerNum = event.getPointerCount();
+                for (int i =0;i<pointerNum;i++) {
+                    if (!pointerMap.containsKey(event.getPointerId(i))){
+                        path = new Path();
+                        path.moveTo(event.getX(i),event.getY(i));
+                        pointerMap.put(event.getPointerId(i),path);
+                        pathList.add(pointerMap.get(event.getPointerId(i)));
+                        paintList.add(paint);
+                    }
+                }
+
+                isEraser();
+                draw();
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                /**
+                 * 1、获取落笔数量
+                 * 2.1、通过落笔数量，遍历获得落笔id
+                 * 2.2、通过落笔id，获取对应的path
+                 * 2.3、根据event.get(i)获得当前触碰位置，path.lineTo(x,y)
+                 * 2.4、根据id，将pointerMap中对应的path更新
+                 * 3、draw()
+                 */
+                pointerNum = event.getPointerCount();
+                for (int i =0;i<pointerNum;i++) {
+                    int id = event.getPointerId(i);
+                    pointerMap.get(id).lineTo(event.getX(i),event.getY(i));
+                }
                 x = event.getX();
                 y = event.getY();
-                path.setLastPoint(event.getX(), event.getY());
-                pathList.get(pathList.size() - 1).lineTo(event.getX(), event.getY());
+                path.moveTo(event.getX(), event.getY());
                 isEraser();
                 draw();
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                Log.d(TAG, "onTouch: ");
+                /**
+                 * 1、将当前抬起的笔触从pointerMap中删去
+                 */
+                int pointerId = event.getPointerId(event.getActionIndex());
+                pointerMap.remove(pointerId);
                 break;
 
 
