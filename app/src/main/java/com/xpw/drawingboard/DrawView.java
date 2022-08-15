@@ -267,7 +267,12 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 pointerNum = event.getPointerCount();
                 for (int i = 0; i < pointerNum; i++) {
                     int id = event.getPointerId(i);
-                    pointerMap.get(id).getPath().lineTo(event.getX(i), event.getY(i));
+                    pointerMap.get(id).setPreX(pointerMap.get(id).getX());
+                    pointerMap.get(id).setPreY(pointerMap.get(id).getY());
+                    pointerMap.get(id).setX(event.getX());
+                    pointerMap.get(id).setY(event.getY());
+                    pointerMap.get(id).getPath().quadTo(pointerMap.get(i).getPreX(),pointerMap.get(i).getPreY(),event.getX(i),event.getY(i));
+//                    pointerMap.get(id).getPath().lineTo(event.getX(i), event.getY(i));
                 }
                 x = event.getX();
                 y = event.getY();
