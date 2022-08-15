@@ -14,6 +14,8 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import com.xpw.drawingboard.pojo.Pointer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.Map;
 public class DrawView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
 
     private static final String TAG = "测试";
+    //画笔
+    private Paint paint = new Paint();
     //画笔集
     private List<Paint> paintList = new ArrayList<>();
     //路径集
@@ -36,29 +40,30 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     private float x;
     //当前触点x坐标
     private float y;
+    //上一个触点x坐标
+    private float preX;
+    //上一个触点y坐标
+    private float preY;
     //画笔类型
     private String paintType;
-
     //画笔撤销集
     private List<Paint> revokePaintList = new ArrayList<>();
     //路径撤销集
     private List<Path> revokePathList = new ArrayList<>();
     //笔触数量
     private int pointerNum;
-
     //画布
     private Canvas canvas;
-
     //橡皮擦画笔
     private Paint eraserPaint = new Paint();
 
-    //画笔
-    private Paint paint = new Paint();
+
     /**
      * 多指绘图数据集合
      * Integer负责存储pointerId，Path负责存储对应pointer的path
      */
-    private Map<Integer, Path> pointerMap = new HashMap<>();
+    private Map<Integer, Pointer> pointerMap = new HashMap<>();
+    Pointer pointerTemp;
 
     //路径
     private Path path = new Path();
@@ -73,7 +78,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     }
 
     //画笔绘制动作
-    //todo:原理，逻辑
     public void draw() {
         canvas = getHolder().lockCanvas();
 
@@ -201,13 +205,21 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 8、draw（）
                  */
                 pointerMap = new HashMap<>();
+                pointerTemp = new Pointer();
                 path = new Path();
                 path.moveTo(event.getX(), event.getY());
-                pointerMap.put(event.getPointerId(0), path);
-                pathList.add(pointerMap.get(0));
+                //todo:pointerTemp的初始化可以抽出一个方法
+                pointerTemp.setId(event.getPointerId(0));
+                pointerTemp.setPath(path);
+                pointerTemp.setX(event.getX());
+                pointerTemp.setY(event.getY());
+                pointerMap.put(event.getPointerId(0), pointerTemp);
+                pathList.add(pointerMap.get(0).getPath());
                 paintList.add(paint);
+                //todo:x、y的属性可以封装至eraser类，或者说eraser类和paint类合并
                 x = event.getX();
                 y = event.getY();
+                //todo:isEraser应该也可以封装至eraser类中
                 isEraser();
                 draw();
                 break;
@@ -224,16 +236,21 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 5、draw()
                  */
                 pointerNum = event.getPointerCount();
-                for (int i =0;i<pointerNum;i++) {
-                    if (!pointerMap.containsKey(event.getPointerId(i))){
+                for (int i = 0; i < pointerNum; i++) {
+                    if (!pointerMap.containsKey(event.getPointerId(i))) {
                         path = new Path();
-                        path.moveTo(event.getX(i),event.getY(i));
-                        pointerMap.put(event.getPointerId(i),path);
-                        pathList.add(pointerMap.get(event.getPointerId(i)));
+                        pointerTemp = new Pointer();
+                        path.moveTo(event.getX(i), event.getY(i));
+                        //todo:pointer抽取方法
+                        pointerTemp.setId(event.getPointerId(i));
+                        pointerTemp.setPath(path);
+                        pointerTemp.setX(event.getX(i));
+                        pointerTemp.setPreY(event.getY(i));
+                        pointerMap.put(event.getPointerId(i), pointerTemp);
+                        pathList.add(pointerMap.get(event.getPointerId(i)).getPath());
                         paintList.add(paint);
                     }
                 }
-
                 isEraser();
                 draw();
                 break;
@@ -248,9 +265,9 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 3、draw()
                  */
                 pointerNum = event.getPointerCount();
-                for (int i =0;i<pointerNum;i++) {
+                for (int i = 0; i < pointerNum; i++) {
                     int id = event.getPointerId(i);
-                    pointerMap.get(id).lineTo(event.getX(i),event.getY(i));
+                    pointerMap.get(id).getPath().lineTo(event.getX(i), event.getY(i));
                 }
                 x = event.getX();
                 y = event.getY();
@@ -266,7 +283,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 int pointerId = event.getPointerId(event.getActionIndex());
                 pointerMap.remove(pointerId);
                 break;
-
 
             case MotionEvent.ACTION_UP:
                 draw();
