@@ -16,13 +16,10 @@ import lombok.Data;
 public class Pointer {
 
     private int id;
-    private Path path;
-    private float x;
-    private float y;
-    private float preX;
-    private float preY;
-
-
-
-
+    private Path actualPath = new Path();
+    private Path slowPath = new Path();
+    private float actualX;
+    private float actualY;
+    private float slowX = -1;
+    private float slowY = -1;
 }

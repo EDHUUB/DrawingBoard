@@ -198,23 +198,26 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 0、初始化pointerMap
                  * 1、获取pointerId
                  * 2、创建并初始化Path
-                 * 3、将pointerId与Path封装至pointerMap
-                 * 5、将pointerMap数据中的path浅拷贝至pathList
+                 * 2、1 初始化actualPath，actualPath获取当前位置
+                 * 2、2 初始化slowPath，不赋值
+                 * 3、将pointerId与slowPath封装至pointerMap
+                 * 5、将pointerMap数据中的slowPath浅拷贝至pathList
                  * 6、将当前paintList添加至paintList
                  * 7、判断当前笔触是否是橡皮擦
                  * 8、draw（）
                  */
                 pointerMap = new HashMap<>();
                 pointerTemp = new Pointer();
-                path = new Path();
-                path.moveTo(event.getX(), event.getY());
                 //todo:pointerTemp的初始化可以抽出一个方法
                 pointerTemp.setId(event.getPointerId(0));
-                pointerTemp.setPath(path);
-                pointerTemp.setX(event.getX());
-                pointerTemp.setY(event.getY());
+                pointerTemp.getSlowPath().moveTo(event.getX(), event.getY());
+                pointerTemp.getActualPath().moveTo(event.getX(), event.getY());
+                pointerTemp.setActualX(event.getX());
+                pointerTemp.setActualY(event.getY());
+                pointerTemp.setSlowX(event.getX());
+                pointerTemp.setSlowY(event.getY());
                 pointerMap.put(event.getPointerId(0), pointerTemp);
-                pathList.add(pointerMap.get(0).getPath());
+                pathList.add(pointerMap.get(0).getSlowPath());
                 paintList.add(paint);
                 //todo:x、y的属性可以封装至eraser类，或者说eraser类和paint类合并
                 x = event.getX();
@@ -235,20 +238,25 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 4、将新path浅拷贝至pathList，将当前paint浅拷贝至paintList
                  * 5、draw()
                  */
+
                 pointerNum = event.getPointerCount();
                 for (int i = 0; i < pointerNum; i++) {
                     if (!pointerMap.containsKey(event.getPointerId(i))) {
-                        path = new Path();
-                        pointerTemp = new Pointer();
-                        path.moveTo(event.getX(i), event.getY(i));
                         //todo:pointer抽取方法
+                        pointerTemp = new Pointer();
                         pointerTemp.setId(event.getPointerId(i));
-                        pointerTemp.setPath(path);
-                        pointerTemp.setX(event.getX(i));
-                        pointerTemp.setPreY(event.getY(i));
+                        pointerTemp.getSlowPath().moveTo(event.getX(i), event.getY(i));
+                        pointerTemp.getActualPath().moveTo(event.getX(i), event.getY(i));
+                        pointerTemp.setActualX(event.getX(i));
+                        pointerTemp.setActualY(event.getY(i));
+                        pointerTemp.setSlowX(event.getX(i));
+                        pointerTemp.setSlowY(event.getY(i));
                         pointerMap.put(event.getPointerId(i), pointerTemp);
-                        pathList.add(pointerMap.get(event.getPointerId(i)).getPath());
+
+                        //slowPath放入pathList
+                        pathList.add(pointerMap.get(event.getPointerId(i)).getSlowPath());
                         paintList.add(paint);
+
                     }
                 }
                 isEraser();
@@ -258,38 +266,62 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
             case MotionEvent.ACTION_MOVE:
                 /**
                  * 1、获取落笔数量
-                 * 2.1、通过落笔数量，遍历获得落笔id
-                 * 2.2、通过落笔id，获取对应的path
-                 * 2.3、根据event.get(i)获得当前触碰位置，path.lineTo(x,y)
-                 * 2.4、根据id，将pointerMap中对应的path更新
-                 * 3、draw()
+                 * 2、通过落笔数量，遍历获得落笔id
+                 * 3、通过落笔id，获取对应的pointer以及其中的slowPath与actualPath
+                 * 3、1若slowPath与actualPath相等，则slowPath不进行操作，actualPath moveTo event.getX(i)和event.getY(i)
+                 * 3、2若slowPath与actualPath不相等，将slowPath quadTo event.getX(i)和event.getY(i)，其中改路径经过actualPath的点，
+                 *      此处重点是求出control点的坐标
+                 *      目前control点选择为连续三个点中的第二个点作为control点
+                 *      actualPath moveTo event.getX(i)和event.getY(i)
+                 * 4、isEraser()
+                 * 5、draw()
                  */
+
                 pointerNum = event.getPointerCount();
                 for (int i = 0; i < pointerNum; i++) {
                     int id = event.getPointerId(i);
-                    pointerMap.get(id).setPreX(pointerMap.get(id).getX());
-                    pointerMap.get(id).setPreY(pointerMap.get(id).getY());
-                    pointerMap.get(id).setX(event.getX());
-                    pointerMap.get(id).setY(event.getY());
-                    pointerMap.get(id).getPath().quadTo(pointerMap.get(i).getPreX(),pointerMap.get(i).getPreY(),event.getX(i),event.getY(i));
-//                    pointerMap.get(id).getPath().lineTo(event.getX(i), event.getY(i));
+
+                    if (pointerMap.get(id).getSlowX() == pointerMap.get(id).getActualX() && pointerMap.get(id).getSlowY() == pointerMap.get(id).getActualY()) {
+                        Log.d(TAG, "第: " + i + "次" + "id为" + id + "出现等于1");
+                        pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                        pointerMap.get(id).setActualX(event.getX(i));
+                        pointerMap.get(id).setActualY(event.getY(i));
+                    } else {
+                        float ctlX = 0;
+                        float ctlY = 0;
+                        //todo:求出ctlX与ctlY
+                        Log.d(TAG, "第: " + i + "次" + "id为" + id + "出现不等于");
+
+                        pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), event.getX(i), event.getY(i));
+                        pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                        pointerMap.get(id).setActualX(event.getX(i));
+                        pointerMap.get(id).setActualY(event.getY(i));
+                        pointerMap.get(id).setSlowX(event.getX(i));
+                        pointerMap.get(id).setSlowY(event.getY(i));
+
+                    }
+
                 }
                 x = event.getX();
                 y = event.getY();
-                path.moveTo(event.getX(), event.getY());
                 isEraser();
                 draw();
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
                 /**
-                 * 1、将当前抬起的笔触从pointerMap中删去
+                 * 1、该笔触的slowPath记录当前点位
+                 * 2、将当前抬起的笔触从pointerMap中删去
+                 *
                  */
                 int pointerId = event.getPointerId(event.getActionIndex());
                 pointerMap.remove(pointerId);
                 break;
 
             case MotionEvent.ACTION_UP:
+                /**
+                 * 1、slowPath记录当前点位
+                 */
                 draw();
                 break;
 
