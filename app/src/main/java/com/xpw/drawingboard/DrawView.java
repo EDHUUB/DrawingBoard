@@ -1,6 +1,8 @@
 package com.xpw.drawingboard;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -56,6 +58,8 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     private Canvas canvas;
     //橡皮擦画笔
     private Paint eraserPaint = new Paint();
+    //位图
+//    private Bitmap bitmap = new BitmapFactory();
 
 
     /**
@@ -67,7 +71,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
 
     //路径
     private Path path = new Path();
-
 
     //初始化
     public DrawView(Context context, AttributeSet attrs) {
@@ -87,6 +90,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 canvas.drawPath(pathList.get(i), paintList.get(i));//设置画笔，路径
             }
         }
+
 
         getHolder().unlockCanvasAndPost(canvas);
     }
@@ -117,11 +121,21 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     //跟随圆点
     public void followPoint() {
         canvas = getHolder().lockCanvas();
+
+        canvas.drawColor(Color.GRAY);
+        if (paintList != null && paintList.size() > 0) {
+            for (int i = 0; i < paintList.size(); i++) {
+                canvas.drawPath(pathList.get(i), paintList.get(i));//设置画笔，路径
+            }
+        }
+
         eraserPaint.setColor(Color.WHITE);
         eraserPaint.setAlpha(50);
         //todo 橡皮擦属性的设置抽取
         eraserPaint.setStrokeWidth(40);
+        canvas.save();
         canvas.drawCircle(x, y, 40, eraserPaint);
+        canvas.restore();
         getHolder().unlockCanvasAndPost(canvas);
 
 
@@ -162,6 +176,8 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     public void isEraser() {
         if (paintType == "eraser") {
             followPoint();
+        }else {
+            draw();
         }
     }
 
@@ -224,7 +240,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 y = event.getY();
                 //todo:isEraser应该也可以封装至eraser类中
                 isEraser();
-                draw();
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -260,7 +275,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                     }
                 }
                 isEraser();
-                draw();
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -292,6 +306,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                         //todo:求出ctlX与ctlY
                         Log.d(TAG, "第: " + i + "次" + "id为" + id + "出现不等于");
 
+
                         pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), event.getX(i), event.getY(i));
                         pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
                         pointerMap.get(id).setActualX(event.getX(i));
@@ -305,7 +320,6 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                 x = event.getX();
                 y = event.getY();
                 isEraser();
-                draw();
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
