@@ -16,6 +16,8 @@ public class MainActivity extends AppCompatActivity {
     private Button forwardButton;
     private Button eraserButton;
     private DrawView drawView;
+    private Button testLine;
+    private Button testLineDemo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         eraserButton = findViewById(R.id.point_eraser_btn);
         revokeButton = findViewById(R.id.revoke_btn);
         forwardButton = findViewById(R.id.forward_btn);
+        testLine = findViewById(R.id.test_line_btn);
+        testLineDemo = findViewById(R.id.test_line_demo_btn);
 
 
         cleanButton.setOnClickListener(new View.OnClickListener() {
@@ -79,6 +83,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawView.forward();
+            }
+        });
+
+        testLine.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawView.testLine();
+            }
+        });
+
+        testLineDemo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawView.testLineDemo();
             }
         });
 

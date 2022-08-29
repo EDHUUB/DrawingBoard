@@ -60,6 +60,9 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     private Paint eraserPaint = new Paint();
     //位图
 //    private Bitmap bitmap = new BitmapFactory();
+    //控制点
+    private float ctlX;
+    private float ctlY;
 
 
     /**
@@ -99,6 +102,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     public void changeToYellow() {
         paintType = "paint";
         choseColor = Color.YELLOW;
+        paintType = null;
     }
 
     //改变笔触宽度为10
@@ -146,6 +150,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         pathList.clear();
         paintList.clear();
         choseColor = Color.WHITE;
+        paintType = null;
         draw();
     }
 
@@ -176,9 +181,22 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
     public void isEraser() {
         if (paintType == "eraser") {
             followPoint();
-        }else {
+        } else {
             draw();
         }
+    }
+
+    //testLine
+    public void testLine() {
+        paintType = "testLine";
+        choseColor = Color.BLUE;
+
+    }
+
+    //testLineDemo
+    public void testLineDemo() {
+        paintType = "testLineDemo";
+        choseColor = Color.RED;
     }
 
     @Override
@@ -205,6 +223,7 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
         paint.setColor(choseColor);
         paint.setStrokeWidth(choseStrokeWidth);
         paint.setStyle(choseStyle);
+        paint.setAntiAlias(true);
 
         switch (event.getAction() & event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -291,35 +310,70 @@ public class DrawView extends SurfaceView implements SurfaceHolder.Callback, Vie
                  * 5、draw()
                  */
 
-                pointerNum = event.getPointerCount();
-                for (int i = 0; i < pointerNum; i++) {
-                    int id = event.getPointerId(i);
+                if (paintType == "testLine") {
+                    pointerNum = event.getPointerCount();
+                    //                    lineTo
+                    for (int i = 0; i < pointerNum; i++) {
+                        int id = event.getPointerId(i);
+                        pointerMap.get(id).getSlowPath().lineTo(event.getX(i), event.getY(i));
+                    }
+                    x = event.getX();
+                    y = event.getY();
+                    isEraser();
+                }
+                if (paintType == null){
+                    pointerNum = event.getPointerCount();
+                    for (int i = 0; i < pointerNum; i++) {
+                        int id = event.getPointerId(i);
+                        if (pointerMap.get(id).getSlowX() == pointerMap.get(id).getActualX() && pointerMap.get(id).getSlowY() == pointerMap.get(id).getActualY()) {
+                            pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                            pointerMap.get(id).setActualX(event.getX(i));
+                            pointerMap.get(id).setActualY(event.getY(i));
+                        } else {
+                            float ctlX = (pointerMap.get(id).getSlowX()+event.getX())/2;
+                            float ctlY = (pointerMap.get(id).getSlowY()+event.getY())/2;
+                            //todo:求出ctlX与ctlY
+//                            pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), ctlX, ctlY);
+                            pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), event.getX(i), event.getY(i));
+                            pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                            pointerMap.get(id).setActualX(event.getX(i));
+                            pointerMap.get(id).setActualY(event.getY(i));
+                            pointerMap.get(id).setSlowX(event.getX(i));
+                            pointerMap.get(id).setSlowY(event.getY(i));
 
-                    if (pointerMap.get(id).getSlowX() == pointerMap.get(id).getActualX() && pointerMap.get(id).getSlowY() == pointerMap.get(id).getActualY()) {
-                        Log.d(TAG, "第: " + i + "次" + "id为" + id + "出现等于1");
-                        pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
-                        pointerMap.get(id).setActualX(event.getX(i));
-                        pointerMap.get(id).setActualY(event.getY(i));
-                    } else {
-                        float ctlX = 0;
-                        float ctlY = 0;
-                        //todo:求出ctlX与ctlY
-                        Log.d(TAG, "第: " + i + "次" + "id为" + id + "出现不等于");
-
-
-                        pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), event.getX(i), event.getY(i));
-                        pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
-                        pointerMap.get(id).setActualX(event.getX(i));
-                        pointerMap.get(id).setActualY(event.getY(i));
-                        pointerMap.get(id).setSlowX(event.getX(i));
-                        pointerMap.get(id).setSlowY(event.getY(i));
+                        }
 
                     }
-
+                    x = event.getX();
+                    y = event.getY();
+                    isEraser();
                 }
-                x = event.getX();
-                y = event.getY();
-                isEraser();
+                if (paintType == "testLineDemo") {
+                    for (int i = 0; i < pointerNum; i++) {
+                        int id = event.getPointerId(i);
+                        if (pointerMap.get(id).getSlowX() == pointerMap.get(id).getActualX() && pointerMap.get(id).getSlowY() == pointerMap.get(id).getActualY()) {
+                            pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                            pointerMap.get(id).setActualX(event.getX(i));
+                            pointerMap.get(id).setActualY(event.getY(i));
+                        } else {
+                            float ctlX1 = (pointerMap.get(id).getSlowX() + pointerMap.get(id).getActualX()) / 2;
+                            float ctlY1 = (pointerMap.get(id).getSlowY() + pointerMap.get(id).getActualY()) / 2;
+                            float ctlX2 = (pointerMap.get(id).getActualX() + event.getX(i)) / 2;
+                            float ctlY2 = (pointerMap.get(id).getActualY() + event.getY(i)) / 2;
+                            //todo:求出ctlX与ctlY
+//                            pointerMap.get(id).getSlowPath().quadTo(pointerMap.get(id).getActualX(), pointerMap.get(id).getActualY(), event.getX(i), event.getY(i));
+                            pointerMap.get(id).getSlowPath().cubicTo(ctlX1, ctlY1, ctlX2, ctlY2, event.getX(i), event.getY(i));
+                            pointerMap.get(id).getActualPath().moveTo(event.getX(i), event.getY(i));
+                            pointerMap.get(id).setActualX(event.getX(i));
+                            pointerMap.get(id).setActualY(event.getY(i));
+                            pointerMap.get(id).setSlowX(event.getX(i));
+                            pointerMap.get(id).setSlowY(event.getY(i));
+                        }
+                    }
+                    x = event.getX();
+                    y = event.getY();
+                    isEraser();
+                }
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:

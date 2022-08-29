@@ -27,6 +27,25 @@
             />
 
         <Button
+            android:id="@+id/test_line_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:text="testLine"
+            />
+
+        <Button
+            android:id="@+id/test_line_demo_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:text="testLineDemo"
+            />
+
+
+        <Button
             android:id="@+id/stroke_width_btn"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
